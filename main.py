@@ -8,7 +8,9 @@ import traceback
 from oauth2client.service_account import ServiceAccountCredentials
 from flask import Flask
 import os
+from threading import Thread
 
+# Initialize Flask app
 app = Flask(__name__)
 
 @app.route('/')
@@ -25,8 +27,10 @@ scope = [
     "https://www.googleapis.com/auth/drive.file",
     "https://www.googleapis.com/auth/drive"
 ]
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "attached_assets/lukas-is-pro-gunner-noob-b207755e5820.json", scope)
+
+# Read Google Sheets credentials from environment variable
+creds_json = os.getenv('GOOGLE_SHEET_CREDS_JSON')
+creds = ServiceAccountCredentials.from_json_keyfile_dict(eval(creds_json), scope)
 gc = gspread.authorize(creds)
 spreadsheet = gc.open("Lukas's World Cup™ 26 | Spreadsheet")
 
@@ -41,11 +45,10 @@ intents.guilds = True
 intents.presences = True
 bot = commands.Bot(
     command_prefix="!", intents=intents,
-    application_id=1350483937104756756)
+    application_id=int(os.getenv('DISCORD_APP_ID')))
 
-GUILD_ID = 1335560058100252722  # Your Discord server ID
+GUILD_ID = int(os.getenv('DISCORD_GUILD_ID'))  # Your Discord server ID
 FREE_AGENT_ROLE = "Free Agent"
-
 
 # ✅ Function to Clean Usernames
 def clean_nickname(nickname):
@@ -53,7 +56,6 @@ def clean_nickname(nickname):
         return re.sub(r"\s*\(.*?\)", "",
                       nickname).strip()  # Removes anything in parentheses
     return "Unknown"
-
 
 # ✅ National and Club Teams (from your provided list)
 national_teams = {
@@ -69,7 +71,6 @@ club_teams = {
     "Bayern Munich", "Borussia Dortmund", "Chelsea", "Atlético Madrid"
 }
 
-
 # ✅ Function to Get OVR from the Sheet
 def get_player_ovr_from_sheet(username):
     try:
@@ -83,7 +84,6 @@ def get_player_ovr_from_sheet(username):
         print(f"Error fetching OVR: {e}")
         return "Error"
 
-
 # ✅ Function to Get Team from the Sheet
 def get_player_team_from_sheet(username):
     try:
@@ -96,7 +96,6 @@ def get_player_team_from_sheet(username):
     except Exception as e:
         print(f"Error fetching team: {e}")
         return "Error"
-
 
 async def update_sheet():
     """Updates player details in Main Sheet from Discord & Team Sheets."""
@@ -208,7 +207,6 @@ async def update_sheet():
 
         print("✅ Google Sheet updated successfully.")
 
-
 async def update_loop():
     """Runs updates every 60 seconds."""
     while True:
@@ -218,7 +216,6 @@ async def update_loop():
             print(f"❌ Error updating sheet: {e}")
             traceback.print_exc()  # Log full traceback
         await asyncio.sleep(60)
-
 
 @bot.event
 async def on_ready():
@@ -231,29 +228,26 @@ async def on_ready():
         traceback.print_exc()  # Log full traceback
     bot.loop.create_task(update_loop())
 
-
 @bot.event
 async def on_member_update(before, after):
     await update_sheet()
-
 
 @bot.event
 async def on_member_join(member):
     await update_sheet()
 
-
 @bot.event
 async def on_member_remove(member):
     await update_sheet()
 
-
 if __name__ == '__main__':
     # Run Flask in a separate thread
-    from threading import Thread
     flask_thread = Thread(target=run_flask, daemon=True)
     flask_thread.start()
 
-    # Run the Discord bot
-    with open("attached_assets/token.txt", "r") as f:
-        TOKEN = f.read().strip()
+    # Read Discord bot token from environment variable
+    DISCORD_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
+    if not DISCORD_TOKEN:
+        raise ValueError("No Discord Bot Token provided")
+        
     bot.run('MTM1MDQ4MzkzNzEwNDc1Njc1Ng.GYUgc-.zCmZVPK4gbvqnYciwi0sg5e-uCkj2_SqtBlLDY')  # This will block and keep the bot running
