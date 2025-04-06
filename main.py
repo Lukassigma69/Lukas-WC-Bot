@@ -53,8 +53,7 @@ FREE_AGENT_ROLE = "Free Agent"
 # ✅ Function to Clean Usernames
 def clean_nickname(nickname):
     if nickname:
-        return re.sub(r"\s*\(.*?\)", "",
-                      nickname).strip()  # Removes anything in parentheses
+        return re.sub(r"\s*\(.*?\)", "", nickname).strip()  # Removes anything in parentheses
     return "Unknown"
 
 # ✅ National and Club Teams (from your provided list)
