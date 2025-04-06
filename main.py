@@ -30,7 +30,11 @@ scope = [
 
 # Read Google Sheets credentials from environment variable
 creds_json = os.getenv('GOOGLE_SHEET_CREDS_JSON')
-creds = ServiceAccountCredentials.from_json_keyfile_dict(eval(creds_json), scope)
+if not creds_json:
+    raise ValueError("Google Sheet credentials not set in environment variable.")
+
+creds_dict = eval(creds_json)  # Convert the JSON string into a dictionary
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 gc = gspread.authorize(creds)
 spreadsheet = gc.open("Lukas's World Cup™ 26 | Spreadsheet")
 
@@ -53,7 +57,8 @@ FREE_AGENT_ROLE = "Free Agent"
 # ✅ Function to Clean Usernames
 def clean_nickname(nickname):
     if nickname:
-        return re.sub(r"\s*\(.*?\)", "", nickname).strip()  # Removes anything in parentheses
+        return re.sub(r"\s*\(.*?\)", "",
+                      nickname).strip()  # Removes anything in parentheses
     return "Unknown"
 
 # ✅ National and Club Teams (from your provided list)
@@ -247,6 +252,6 @@ if __name__ == '__main__':
     # Read Discord bot token from environment variable
     DISCORD_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
     if not DISCORD_TOKEN:
-        raise ValueError("No Discord Bot Token provided")
-        
+        raise ValueError("No Discord bot token provided in environment variable.")
+
     bot.run('MTM1MDQ4MzkzNzEwNDc1Njc1Ng.GYUgc-.zCmZVPK4gbvqnYciwi0sg5e-uCkj2_SqtBlLDY')  # This will block and keep the bot running
