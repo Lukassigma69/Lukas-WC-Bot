@@ -33,7 +33,12 @@ creds_json = os.getenv('lukas-is-pro-gunner-noob-b207755e5820.json')
 if not creds_json:
     raise ValueError("Google Sheet credentials not set in environment variable.")
 
-creds_dict = eval(creds_json)  # Convert the JSON string into a dictionary
+# Safely parse the JSON string into a dictionary
+try:
+    creds_dict = json.loads(creds_json)  # Convert the JSON string into a dictionary
+except json.JSONDecodeError as e:
+    raise ValueError(f"Error parsing credentials JSON: {e}")
+
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 gc = gspread.authorize(creds)
 spreadsheet = gc.open("Lukas's World Cup™ 26 | Spreadsheet")
