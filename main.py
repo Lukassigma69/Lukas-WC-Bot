@@ -254,4 +254,4 @@ if __name__ == '__main__':
     if not DISCORD_TOKEN:
         raise ValueError("No Discord bot token provided in environment variable.")
 
-    bot.run('MTM1MDQ4MzkzNzEwNDc1Njc1Ng.GYUgc-.zCmZVPK4gbvqnYciwi0sg5e-uCkj2_SqtBlLDY')  # This will block and keep the bot running
+   bot.run(DISCORD_TOKEN)  # This will block and keep the bot running
