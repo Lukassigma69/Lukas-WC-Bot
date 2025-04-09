@@ -1,5 +1,5 @@
-discord.py
-gspread
-Flask
-requests
-oauth2client
+discord.py==2.1.1
+gspread==5.4.0
+requests==2.26.0
+flask==2.1.0
+oauth2client==4.1.3
