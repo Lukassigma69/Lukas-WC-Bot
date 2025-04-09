@@ -10,10 +10,8 @@ from flask import Flask
 import os
 from threading import Thread
 import json
-from keep_alive import keep_alive  # Create a file for this
-keep_alive()  # Starts Flask
 
-# === Flask Setup ===
+# Initialize Flask app
 app = Flask(__name__)
 
 @app.route('/')
@@ -23,7 +21,7 @@ def home():
 def run_flask():
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
 
-# === Google Sheets API Setup ===
+# ✅ Google Sheets API Setup
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -31,13 +29,14 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# Load credentials from environment variable
-creds_json = os.getenv('GOOGLE_SHEET_CREDENTIALS')  # ✅ MUST be set in env
+# Read Google Sheets credentials from environment variable
+creds_json = os.getenv('lukas-is-pro-gunner-noob-b207755e5820.json')
 if not creds_json:
-    raise ValueError("Google Sheet credentials not set in environment variable 'GOOGLE_SHEET_CREDS'.")
+    raise ValueError("Google Sheet credentials not set in environment variable.")
 
+# Safely parse the JSON string into a dictionary
 try:
-    creds_dict = json.loads(creds_json)
+    creds_dict = json.loads(creds_json)  # Convert the JSON string into a dictionary
 except json.JSONDecodeError as e:
     raise ValueError(f"Error parsing credentials JSON: {e}")
 
@@ -45,29 +44,30 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 gc = gspread.authorize(creds)
 spreadsheet = gc.open("Lukas's World Cup™ 26 | Spreadsheet")
 
-main_sheet = spreadsheet.sheet1
-team_sheets = spreadsheet.worksheet("Team Sheets")
+# ✅ Access Sheets
+main_sheet = spreadsheet.sheet1  # Main Sheet
+team_sheets = spreadsheet.worksheet("Team Sheets")  # Team Sheets
 
-# === Discord Bot Setup ===
+# ✅ Discord Bot Setup
 intents = discord.Intents.default()
 intents.members = True
 intents.guilds = True
 intents.presences = True
-
 bot = commands.Bot(
-    command_prefix="!",
-    intents=intents,
-    application_id=int(os.getenv('DISCORD_APP_ID'))
-)
+    command_prefix="!", intents=intents,
+    application_id=int(os.getenv('DISCORD_APP_ID')))
 
-GUILD_ID = int(os.getenv('DISCORD_GUILD_ID'))
+GUILD_ID = int(os.getenv('DISCORD_GUILD_ID'))  # Your Discord server ID
 FREE_AGENT_ROLE = "Free Agent"
 
-# === Clean nickname utility ===
+# ✅ Function to Clean Usernames
 def clean_nickname(nickname):
-    return re.sub(r"\s*\(.*?\)", "", nickname).strip() if nickname else "Unknown"
+    if nickname:
+        return re.sub(r"\s*\(.*?\)", "",
+                      nickname).strip()  # Removes anything in parentheses
+    return "Unknown"
 
-# === Teams List ===
+# ✅ National and Club Teams (from your provided list)
 national_teams = {
     "Germany", "Portugal", "Spain", "Argentina", "Brazil", "Japan",
     "South Korea", "England", "Belgium", "France", "Italy", "Croatia", "India",
@@ -81,134 +81,161 @@ club_teams = {
     "Bayern Munich", "Borussia Dortmund", "Chelsea", "Atlético Madrid"
 }
 
-# === Get OVR from Sheet ===
+# ✅ Function to Get OVR from the Sheet
 def get_player_ovr_from_sheet(username):
     try:
+        # Find player in the sheet and return the OVR
         team_data = team_sheets.get_all_values()
         for row in team_data[8:29]:
-            if row[0].strip().lower() == username.lower():
-                return int(row[1])
+            if row[0].strip() == username:
+                return int(row[1])  # Assuming OVR is in column B (index 1)
         return "No OVR found"
     except Exception as e:
         print(f"Error fetching OVR: {e}")
         return "Error"
 
-# === Get Team from Sheet ===
+# ✅ Function to Get Team from the Sheet
 def get_player_team_from_sheet(username):
     try:
+        # Find player in the sheet and return the team
         team_data = team_sheets.get_all_values()
         for row in team_data[8:29]:
-            if row[0].strip().lower() == username.lower():
-                return row[3]
+            if row[0].strip() == username:
+                return row[3]  # Assuming Team Name is in column D (index 3)
         return "No team found"
     except Exception as e:
         print(f"Error fetching team: {e}")
         return "Error"
 
-# === Update Sheet ===
 async def update_sheet():
-    start_row = 22
+    """Updates player details in Main Sheet from Discord & Team Sheets."""
+    start_row = 22  # Row 22 for usernames
+    username_col = 6  # Column G
+    team_col = 7  # Column H
+    club_col = 8  # Column I
+    ovr_col = 9  # Column J
+    club_name_col = 16  # Column P
+    extra_col = 17  # Column Q
+    national_team_logo_col = 13  # Column M (National Team Logo)
+
     guild = bot.get_guild(GUILD_ID)
     if not guild:
         print("❌ Guild not found!")
         return
 
+    # ✅ Extract data from "Team Sheets"
     try:
         team_data = team_sheets.get_all_values()
     except Exception as e:
         print(f"❌ Google Sheets Error: {e}")
         return
 
-    ovr_team_col, ovr_value_col, logo_col, team_name_col = 0, 1, 2, 3
+    if not team_data:
+        print("⚠️ Team sheet is empty or not found.")
+        return
 
+    ovr_team_col = 0  # Column A (Username)
+    ovr_value_col = 1  # Column B (OVR)
+    logo_col = 2  # Column C (Logo) in Team Sheets
+    team_name_col = 3  # Column D (Team Name) in Team Sheets
+
+    # ✅ Extract OVR values and logos for national teams (rows 9 to 29)
     player_ovr = {
-        row[ovr_team_col].strip().lower(): int(row[ovr_value_col])
+        row[ovr_team_col].strip(): int(row[ovr_value_col])
         for row in team_data[8:29]
         if len(row) > ovr_value_col and row[ovr_value_col].isdigit()
     }
 
+    # ✅ Extract national team logos and team names
     national_team_info = {
-        row[team_name_col]: {"logo": row[logo_col]}
+        row[team_name_col]: {
+            "logo": row[logo_col]
+        }
         for row in team_data[8:29] if len(row) > team_name_col
     }
 
     print(f"🔍 Extracted OVRs: {player_ovr}")
-    print(f"🔍 National Team Logos: {national_team_info}")
+    print(f"🔍 Extracted National Team Logos: {national_team_info}")
 
+    # ✅ Extract usernames, teams, clubs from Discord
     members_data = []
     seen_usernames = set()
-
     for member in guild.members:
         if member.bot:
             continue
 
-        username = clean_nickname(member.nick or member.name)
-        username_lower = username.lower()
+        # Get the username
+        username = clean_nickname(
+            member.nick) if member.nick else clean_nickname(member.name)
 
+        # Convert to lowercase for comparison
+        username_lower = username.lower()
         if username_lower in seen_usernames:
             continue
         seen_usernames.add(username_lower)
 
+        # Find national team role
         national_team = next(
             (r.name.replace("WC | ", "")
-             for r in member.roles if r.name.startswith("WC |") and r.name.replace("WC | ", "") in national_teams),
-            None
-        )
+             for r in member.roles if r.name.startswith("WC |")
+             and r.name.replace("WC | ", "") in national_teams), None)
 
-        club_team = next(
-            (r.name.replace("UCL | ", "")
-             for r in member.roles if r.name.startswith("UCL |") and r.name.replace("UCL | ", "") in club_teams),
-            None
-        )
+        # Find club role
+        club_team = next((r.name.replace("UCL | ", "")
+                          for r in member.roles if r.name.startswith("UCL |")
+                          and r.name.replace("UCL | ", "") in club_teams),
+                         None)
 
         if national_team and club_team:
             team_and_club = f"{national_team}, {club_team}"
             club_name = f"{national_team}, {club_team}".upper()
         elif national_team:
-            team_and_club = national_team
-            club_name = national_team.upper()
+            team_and_club = f"{national_team}"
+            club_name = f"{national_team}".upper()
         elif club_team:
-            team_and_club = club_team
-            club_name = club_team.upper()
+            team_and_club = f"{club_team}"
+            club_name = f"{club_team}".upper()
         else:
             team_and_club = "Free Agent"
-            club_name = "FREE AGENT"
+            club_name = "Free Agent".upper()
 
-        ovr = player_ovr.get(username_lower, "--")
+        # Get the OVR formula
+        ovr = player_ovr.get(username, "--")
 
         members_data.append([username, team_and_club, ovr, club_name])
 
-    if members_data:
-        num_members = len(members_data)
+    # ✅ Update Google Sheet
+    num_members = len(members_data)
+    if num_members > 0:
+        # Update everything except OVR (column J)
         main_sheet.update(f"G{start_row}:G{start_row + num_members - 1}",
-                          [[row[0]] for row in members_data])
+                          [[row[0]] for row in members_data])  # Usernames
         main_sheet.update(f"H{start_row}:H{start_row + num_members - 1}",
-                          [[row[1]] for row in members_data])
+                          [[row[1]] for row in members_data])  # Teams & Clubs
         main_sheet.update(f"P{start_row}:P{start_row + num_members - 1}",
-                          [[row[3]] for row in members_data])
+                          [[row[3]] for row in members_data])  # Club Name
 
         print("✅ Google Sheet updated successfully.")
 
-# === Auto Update Loop ===
 async def update_loop():
+    """Runs updates every 60 seconds."""
     while True:
         try:
             await update_sheet()
         except Exception as e:
             print(f"❌ Error updating sheet: {e}")
-            print(traceback.format_exc())
+            traceback.print_exc()  # Log full traceback
         await asyncio.sleep(60)
 
-# === Bot Events ===
 @bot.event
 async def on_ready():
     print(f"✅ Logged in as {bot.user}")
-    await asyncio.sleep(2)
+    await asyncio.sleep(2)  # Small delay to ensure bot is ready
     try:
         await update_sheet()
     except Exception as e:
         print(f"❌ Error during on_ready: {e}")
-        print(traceback.format_exc())
+        traceback.print_exc()  # Log full traceback
     bot.loop.create_task(update_loop())
 
 @bot.event
@@ -223,12 +250,14 @@ async def on_member_join(member):
 async def on_member_remove(member):
     await update_sheet()
 
-# === Start Bot ===
 if __name__ == '__main__':
+    # Run Flask in a separate thread
     flask_thread = Thread(target=run_flask, daemon=True)
     flask_thread.start()
 
+    # Read Discord bot token from environment variable
     DISCORD_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
     if not DISCORD_TOKEN:
         raise ValueError("No Discord bot token provided in environment variable 'DISCORD_BOT_TOKEN'.")
-    bot.run(DISCORD_TOKEN)
+    print(f"Bot token: {DISCORD_TOKEN}")  # Debug line to check the token
+    bot.run(DISCORD_TOKEN)  # ✅ Make sure this line is properly indented
