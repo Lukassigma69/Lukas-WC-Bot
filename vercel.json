@@ -1,3 +1,12 @@
 {
-  "regions": ["sin1"]
+  "version": 2,
+  "builds": [
+    {
+      "src": "main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "env": {
+    "MY_ENV_VARIABLE": "value"
+  }
 }
