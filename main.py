@@ -283,5 +283,5 @@ if __name__ == '__main__':
 DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 if not DISCORD_BOT_TOKEN:
     raise ValueError("No Discord bot token provided in environment variable 'DISCORD_BOT_TOKEN'.")
-print(f"Bot token: {DISCORD_BOT_TOKEN}")  # Debug line to check the token
-    bot.run(DISCORD_BOT_TOKEN)  # ✅ Make sure this line is properly indented
+print(f"Bot token: {'DISCORD_BOT_TOKEN'}")  # Debug line to check the token
+    bot.run('DISCORD_BOT_TOKEN')  # ✅ Make sure this line is properly indented
