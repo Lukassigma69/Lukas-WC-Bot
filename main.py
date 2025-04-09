@@ -13,16 +13,6 @@ import json
 from keep_alive import keep_alive  # Create a file for this
 keep_alive()  # Starts Flask
 
-# Initialize Flask app
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return 'Sigma Bot is running!'
-
-def run_flask():
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-
 # ✅ Google Sheets API Setup
 scope = [
     "https://spreadsheets.google.com/feeds",
