@@ -10,6 +10,8 @@ from flask import Flask
 import os
 from threading import Thread
 import json
+from keep_alive import keep_alive  # Create a file for this
+keep_alive()  # Starts Flask
 
 # Initialize Flask app
 app = Flask(__name__)
