@@ -12,6 +12,39 @@ from threading import Thread
 import json
 from keep_alive import keep_alive  # Create a file for this
 keep_alive()  # Starts Flask
+import requests
+import time
+ 
+app = Flask(__name__)
+
+# Define your route(s)
+@app.route('/')
+def home():
+    return "Hello, World!"
+
+# Function to run Flask
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+# Function to keep the server alive by sending periodic requests
+def keep_alive():
+    while True:
+        try:
+            requests.get('http://localhost:5000')
+        except requests.exceptions.RequestException as e:
+            print(f"Error in keep_alive: {e}")
+        time.sleep(60)  # Sleep for 60 seconds before sending the next request
+
+# Start the Flask app in a thread
+if __name__ == "__main__":
+    flask_thread = Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+
+    # Start the keep-alive thread
+    keep_alive_thread = Thread(target=keep_alive, daemon=True)
+    keep_alive_thread.start()
+
+    # Continue with other tasks here if necessary
 
 # ✅ Google Sheets API Setup
 scope = [
