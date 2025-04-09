@@ -1,19 +1,17 @@
+import os
 from flask import Flask
+from threading import Thread
+import time
 
-app = Flask(__name__)
+app = Flask('')
 
-# Define your Flask app route(s)
 @app.route('/')
 def home():
-    return "Hello, World!"
+    return "Bot is running."
 
-# Function to run the Flask app
-def run_flask():
-    app.run()
+def run():
+    app.run(host='0.0.0.0', port=8080)
 
-# Somewhere in your code, you are using a Thread to run Flask
-if __name__ == "__main__":
-    from threading import Thread
-    flask_thread = Thread(target=run_flask, daemon=True)
-    flask_thread.start()
-    # Continue with your other code if needed
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
