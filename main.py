@@ -32,7 +32,7 @@ scope = [
 ]
 
 # Load credentials from environment variable
-creds_json = os.getenv('GOOGLE_SHEET_CREDS')  # ✅ MUST be set in env
+creds_json = os.getenv('GOOGLE_SHEET_CREDENTIALS')  # ✅ MUST be set in env
 if not creds_json:
     raise ValueError("Google Sheet credentials not set in environment variable 'GOOGLE_SHEET_CREDS'.")
 
