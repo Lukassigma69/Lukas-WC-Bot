@@ -280,9 +280,9 @@ if __name__ == '__main__':
     flask_thread = Thread(target=run_flask, daemon=True)
     flask_thread.start()
 
-    DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-    if not DISCORD_TOKEN:
+    DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
+    if not DISCORD_BOT_TOKEN:
         raise ValueError("No Discord bot token provided in environment variable 'DISCORD_BOT_TOKEN'.")
     
     print("🔑 Bot starting...")
-    bot.run('MTM1MDQ4MzkzNzEwNDc1Njc1Ng.GkoIO_.Pu3kUITLevCncPf36oQJaxdmQxMxGiWpBP7_jE')
+    bot.run('DISCORD_BOT_TOKEN')
