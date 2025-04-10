@@ -35,6 +35,22 @@ def keep_alive():
             print(f"Error in keep_alive: {e}")
         time.sleep(60)  # Sleep for 60 seconds before sending the next request
 
+# Read the token from the token.txt file
+def get_token_from_file(file_path="token.txt"):
+    try:
+        with open(file_path, "r") as file:
+            token = file.read().strip()  # Read and strip any leading/trailing whitespace
+            if not token:
+                raise ValueError("Token file is empty.")
+            return token
+    except FileNotFoundError:
+        raise FileNotFoundError(f"{file_path} not found.")
+    except Exception as e:
+        raise ValueError(f"Error reading token: {e}")
+
+# Read the token from file
+DISCORD_BOT_TOKEN = get_token_from_file()
+
 # Start the Flask app in a thread
 if __name__ == "__main__":
     flask_thread = Thread(target=run_flask, daemon=True)
@@ -280,9 +296,5 @@ if __name__ == '__main__':
     flask_thread = Thread(target=run_flask, daemon=True)
     flask_thread.start()
 
-    DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
-    if not DISCORD_BOT_TOKEN:
-        raise ValueError("No Discord bot token provided in environment variable 'DISCORD_BOT_TOKEN'.")
-    
     print("🔑 Bot starting...")
-    bot.run('DISCORD_BOT_TOKEN')
+    bot.run(DISCORD_BOT_TOKEN)
