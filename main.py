@@ -49,7 +49,7 @@ def get_token_from_file(file_path="token.txt"):
         raise ValueError(f"Error reading token: {e}")
 
 # Read the token from file
-DISCORD_BOT_TOKEN = get_token_from_file()
+DISCORD_BOT_TOKEN = get_token_from_file("token.txt")
 
 # Start the Flask app in a thread
 if __name__ == "__main__":
