@@ -285,4 +285,4 @@ if __name__ == '__main__':
         raise ValueError("No Discord bot token provided in environment variable 'DISCORD_BOT_TOKEN'.")
     
     print("🔑 Bot starting...")
-    bot.run('DISCORD_TOKEN')
+    bot.run('MTM1MDQ4MzkzNzEwNDc1Njc1Ng.GkoIO_.Pu3kUITLevCncPf36oQJaxdmQxMxGiWpBP7_jE')
