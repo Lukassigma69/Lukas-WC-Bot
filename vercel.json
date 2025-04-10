@@ -1,6 +1,8 @@
 {
-  "version": 2,
-  "env": {
-    "MY_ENV_VARIABLE": "value"
-  }
+  "builds": [
+    { "src": "main.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "main.py" }
+  ]
 }
